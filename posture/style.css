@@ -141,8 +141,17 @@ h2, h3, .summary h2 { font-family: var(--serif); font-weight: 600; letter-spacin
 }
 .drop:hover, .drop.is-over { border-color: var(--brand); background: var(--brand-soft); }
 .drop input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
-.drop-inner { display: grid; justify-items: center; gap: 4px; padding: 48px 16px; text-align: center; color: var(--muted); }
-.drop-inner svg { color: var(--brand); }
+.drop { width: 100%; max-width: 300px; margin: 0 auto; aspect-ratio: 3 / 4; position: relative; }
+.drop-inner { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 16px; text-align: center; color: var(--muted); }
+.silhouette { width: 34%; height: auto; max-height: 52%; margin-bottom: 10px; fill: none; stroke: var(--brand); stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; opacity: .75; }
+.silhouette .s-plumb { stroke-width: 1.5; stroke-dasharray: 5 5; opacity: .8; }
+.drop-cam { display: inline-flex; vertical-align: -3px; margin-right: 6px; color: var(--brand); }
+.drop-inner b { display: inline-flex; align-items: center; }
+.drop-inner .tip { display: none; }
+@media (hover: none) and (pointer: coarse) {
+  .drop-inner .dnd { display: none; }
+  .drop-inner .tip { display: block; }
+}
 .drop-inner b { color: var(--text); font-size: 16px; }
 .drop-inner small { font-size: 12.5px; }
 .has-image .drop { display: none; }
