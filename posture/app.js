@@ -3,7 +3,7 @@ import { PoseLandmarker, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@m
 const WASM_PATH = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm";
 const MODEL_URL = "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/1/pose_landmarker_full.task";
 const MAX_SIDE = 1600;
-const HISTORY_KEY = "posture-check-history-v1";
+const HISTORY_KEY = "cafune-posture-history-v1";
 
 const $ = (s, r = document) => r.querySelector(s);
 const toDeg = (r) => (r * 180) / Math.PI;
@@ -336,7 +336,7 @@ function dot(ctx, p, s, editing, active) {
   ctx.save();
   const r = (editing ? 8 : 5.5) * s;
   ctx.fillStyle = active ? "#22d3ee" : "#fff";
-  ctx.strokeStyle = "#0f766e"; ctx.lineWidth = 2.5 * s;
+  ctx.strokeStyle = "#1e7896"; ctx.lineWidth = 2.5 * s;
   ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
   if (editing) { ctx.strokeStyle = "rgba(255,255,255,.6)"; ctx.lineWidth = 1.5 * s; ctx.beginPath(); ctx.arc(p.x, p.y, r * 2.2, 0, Math.PI * 2); ctx.stroke(); }
   ctx.restore();
@@ -663,10 +663,10 @@ function downloadReport() {
   const out = document.createElement("canvas");
   out.width = W; out.height = head + H + pad * 2 + 40;
   const g = out.getContext("2d");
-  g.fillStyle = "#f4f7f6"; g.fillRect(0, 0, out.width, out.height);
-  g.fillStyle = "#0f766e"; g.fillRect(0, 0, W, 6);
+  g.fillStyle = "#f7fbfc"; g.fillRect(0, 0, out.width, out.height);
+  g.fillStyle = "#46b5d6"; g.fillRect(0, 0, W, 6);
   g.fillStyle = "#17312e"; g.font = "700 34px system-ui, sans-serif";
-  g.fillText("AI姿勢チェック 分析結果", pad, 58);
+  g.fillText("Cafuné セルフ姿勢チェック 結果", pad, 58);
   g.font = "400 20px system-ui, sans-serif"; g.fillStyle = "#5d7270";
   const name = $("#clientName").value.trim(), memo = $("#clientMemo").value.trim();
   g.fillText([new Date().toLocaleString("ja-JP"), name, memo].filter(Boolean).join("  /  "), pad, 94);
