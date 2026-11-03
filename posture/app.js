@@ -3,7 +3,8 @@ import { PoseLandmarker, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@m
 const WASM_PATH = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm";
 const MODEL_URL = "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/1/pose_landmarker_full.task";
 const MAX_SIDE = 1600;
-const HISTORY_KEY = "cafune-posture-history-v1";
+import { CONFIG } from "./config.js";
+const HISTORY_KEY = CONFIG.historyKey;
 
 const $ = (s, r = document) => r.querySelector(s);
 const toDeg = (r) => (r * 180) / Math.PI;
@@ -112,31 +113,31 @@ function analyzeFront(p, facing) {
 
   const sh = tilt(shA, shB);
   out.push(metric({
-    id: "shoulder", name: "肩の高さ（左右差）", value: Math.abs(sh), unit: "°", g: 1.5, m: 3,
+    id: "shoulder", name: "肩の高さ（左右差）", value: Math.abs(sh), unit: "°", ...CONFIG.thresholds.shoulder,
     desc: Math.abs(sh) < 0.3 ? "左右ほぼ水平です" : `${sideName(sh < 0)}肩が高い`, high: sideName(sh < 0),
   }));
 
   const hp = tilt(hipA, hipB);
   out.push(metric({
-    id: "pelvis", name: "骨盤の傾き（左右差）", value: Math.abs(hp), unit: "°", g: 1.5, m: 3,
+    id: "pelvis", name: "骨盤の傾き（左右差）", value: Math.abs(hp), unit: "°", ...CONFIG.thresholds.pelvis,
     desc: Math.abs(hp) < 0.3 ? "左右ほぼ水平です" : `${sideName(hp < 0)}側の骨盤が高い`, high: sideName(hp < 0),
   }));
 
   const er = tilt(earA, earB);
   out.push(metric({
-    id: "head", name: "頭の傾き", value: Math.abs(er), unit: "°", g: 2, m: 4,
+    id: "head", name: "頭の傾き", value: Math.abs(er), unit: "°", ...CONFIG.thresholds.head,
     desc: Math.abs(er) < 0.3 ? "まっすぐです" : `頭が${sideName(er > 0)}側に傾いている`,
   }));
 
   const sx = ((shC.x - ankC.x) / H) * 100;
   out.push(metric({
-    id: "shift", name: "上半身の左右シフト", value: Math.abs(sx), unit: "%", g: 1.5, m: 3,
+    id: "shift", name: "上半身の左右シフト", value: Math.abs(sx), unit: "%", ...CONFIG.thresholds.shift,
     desc: Math.abs(sx) < 0.3 ? "重心線上にあります" : `上半身が${sideName(sx < 0)}側へ寄っている（身長比）`,
   }));
 
   const hx = ((hipC.x - ankC.x) / H) * 100;
   out.push(metric({
-    id: "pshift", name: "骨盤の左右シフト", value: Math.abs(hx), unit: "%", g: 1.5, m: 3,
+    id: "pshift", name: "骨盤の左右シフト", value: Math.abs(hx), unit: "%", ...CONFIG.thresholds.pshift,
     desc: Math.abs(hx) < 0.3 ? "重心線上にあります" : `骨盤が${sideName(hx < 0)}側へ寄っている（片足重心の傾向）`,
   }));
 
@@ -152,7 +153,7 @@ function analyzeFront(p, facing) {
   const ankFor = (knee) => (Math.abs(knee.x - ankA.x) < Math.abs(knee.x - ankB.x) ? ankA : ankB);
   const kd = (legDev(hipFor(knA), knA, ankFor(knA)) + legDev(hipFor(knB), knB, ankFor(knB))) / 2;
   out.push(metric({
-    id: "knee", name: "脚のライン（O脚・X脚）", value: kd, dev: kd, unit: "%", g: 2.5, m: 5, signed: true,
+    id: "knee", name: "脚のライン（O脚・X脚）", value: kd, dev: kd, unit: "%", ...CONFIG.thresholds.knee, signed: true,
     desc: Math.abs(kd) < 1 ? "まっすぐです" : kd > 0 ? "O脚傾向（膝が外側に開く）" : "X脚傾向（膝が内側に入る）",
   }));
 
@@ -187,19 +188,19 @@ function analyzeSide(p, dir) {
 
   const head = f(p.sh, p.ear);
   out.push(metric({
-    id: "fhp", name: "頭の位置（ストレートネック傾向）", value: head, dev: Math.max(0, head - 3), unit: "°", g: 7, m: 15, signed: true,
+    id: "fhp", name: "頭の位置（ストレートネック傾向）", value: head, dev: Math.max(0, head - 3), unit: "°", ...CONFIG.thresholds.fhp, signed: true,
     desc: head > 10 ? "頭が肩より前に出ている" : head < -4 ? "頭がやや後ろ寄り" : "耳が肩のほぼ真上にあります",
   }));
 
   const trunk = f(p.hip, p.sh);
   out.push(metric({
-    id: "trunk", name: "上体の傾き（猫背・反り）", value: trunk, unit: "°", g: 4, m: 8, signed: true,
+    id: "trunk", name: "上体の傾き（猫背・反り）", value: trunk, unit: "°", ...CONFIG.thresholds.trunk, signed: true,
     desc: trunk > 4 ? "上体が前に倒れている（猫背傾向）" : trunk < -4 ? "上体が後ろに反っている" : "腰の上に肩が乗っています",
   }));
 
   const hip = f(p.ank, p.hip);
   out.push(metric({
-    id: "hipshift", name: "骨盤の前後位置", value: hip, dev: hip - 1.5, unit: "°", g: 3, m: 6, signed: true,
+    id: "hipshift", name: "骨盤の前後位置", value: hip, dev: hip - 1.5, unit: "°", ...CONFIG.thresholds.hipshift, signed: true,
     desc: hip > 4.5 ? "骨盤が前に突き出ている（スウェイバック傾向）" : hip < -1.5 ? "骨盤が後ろに引けている（お尻が後ろ）" : "くるぶしの上に骨盤があります",
   }));
 
@@ -209,7 +210,7 @@ function analyzeSide(p, dir) {
   const legLen = Math.hypot(p.ank.x - p.hip.x, p.ank.y - p.hip.y) || 1;
   const knee = toDeg(Math.atan2(((p.knee.x - lineX) * dir) * 2, legLen));
   out.push(metric({
-    id: "kneeSide", name: "膝の伸び具合", value: knee, unit: "°", g: 4, m: 9, signed: true,
+    id: "kneeSide", name: "膝の伸び具合", value: knee, unit: "°", ...CONFIG.thresholds.kneeSide, signed: true,
     desc: knee > 4 ? "膝が曲がっている" : knee < -4 ? "膝が反りすぎている（反張膝傾向）" : "自然に伸びています",
   }));
 
@@ -560,7 +561,7 @@ function renderMetrics(v) {
 /* ------------------------------------------------------------------ */
 /* Overall result                                                      */
 /* ------------------------------------------------------------------ */
-const WEIGHT = { shoulder: 1.2, pelvis: 1.5, head: 0.8, shift: 0.8, pshift: 1, knee: 0.8, fhp: 1.4, trunk: 1.2, hipshift: 1.2, kneeSide: 0.7 };
+const WEIGHT = CONFIG.weights;
 let current = null;
 let lastSavedId = null;
 
@@ -664,9 +665,9 @@ function downloadReport() {
   out.width = W; out.height = head + H + pad * 2 + 40;
   const g = out.getContext("2d");
   g.fillStyle = "#f7fbfc"; g.fillRect(0, 0, out.width, out.height);
-  g.fillStyle = "#46b5d6"; g.fillRect(0, 0, W, 6);
+  g.fillStyle = CONFIG.report.accentColor; g.fillRect(0, 0, W, 6);
   g.fillStyle = "#17312e"; g.font = "700 34px system-ui, sans-serif";
-  g.fillText("Cafuné セルフ姿勢チェック 結果", pad, 58);
+  g.fillText(CONFIG.report.title, pad, 58);
   g.font = "400 20px system-ui, sans-serif"; g.fillStyle = "#5d7270";
   const name = $("#clientName").value.trim(), memo = $("#clientMemo").value.trim();
   g.fillText([new Date().toLocaleString("ja-JP"), name, memo].filter(Boolean).join("  /  "), pad, 94);
@@ -691,6 +692,15 @@ function downloadReport() {
 /* ------------------------------------------------------------------ */
 /* Init                                                                */
 /* ------------------------------------------------------------------ */
+function applyBrand() {
+  const b = CONFIG.brand;
+  document.querySelectorAll("[data-booking]").forEach((a) => { a.href = CONFIG.bookingUrl; });
+  document.querySelectorAll("[data-site]").forEach((a) => { a.href = b.siteUrl; });
+  document.querySelectorAll("[data-brand=name]").forEach((e) => { e.textContent = b.name; });
+  document.querySelectorAll("[data-brand=sub]").forEach((e) => { e.textContent = b.sub; });
+  document.querySelectorAll("[data-brand=full]").forEach((e) => { e.textContent = b.fullName; });
+}
+applyBrand();
 createView("front");
 createView("side");
 renderHistory();

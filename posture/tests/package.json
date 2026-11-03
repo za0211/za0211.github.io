@@ -1,0 +1,12 @@
+{
+  "name": "posture-check-tests",
+  "private": true,
+  "description": "姿勢チェックアプリの動作確認テスト（ブラウザで写真を読み込み、分析結果が出るかを確認）",
+  "scripts": {
+    "test": "node e2e.js"
+  },
+  "devDependencies": {
+    "@mediapipe/tasks-vision": "0.10.14",
+    "playwright": "^1.48.0"
+  }
+}
